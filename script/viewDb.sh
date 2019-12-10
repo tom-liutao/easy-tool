@@ -1,43 +1,39 @@
 #! /bin/bash
 
+readonly view_menu_array=("LED DB File"   "viewFile led ;"\
+                         "Button DB File" "viewFile button ;"\
+                         "Rules DB File"  "viewFile rules ;"\
+                         "Back"           "break")
+
+function viewFile () {
+	mkdir -p ./sql
+	adb pull /data/adk.$1.db .
+	sqlite3 adk.$1.db ".dump" > ./sql/$1.sql
+	gnome-terminal -x bash -c "cat ./sql/$1.sql; exec bash;"
+	rm adk.$1.db
+}
+
 function view_menu () {
-	echo "******************************"
-	echo "*           View             *"
-	echo "*      1. Led DB File        *"
-	echo "*      2. Button DB File     *"
-	echo "*      3. Rules DB File      *"
-	echo "*      4. Back               *"
-	echo "******************************"
 	while : 
 	do
-		read -p "Enter Number:" viewCase
-		case $viewCase in
-		1)
-		adb pull /data/adk.led.db .
-		sqlite3 adk.led.db ".dump" > ~/sql/led.sql
-		gnome-terminal -x bash -c "cat ~/sql/led.sql; exec bash;"
-		rm adk.led.db
-		;;
-		2)
-		adb pull /data/adk.button.db .
-		sqlite3 adk.button.db ".dump" > ~/sql/button.sql
-		gnome-terminal -x bash -c "cat ~/sql/button.sql; exec bash;"
-		rm adk.button.db
-		;;
-		3)
-		adb pull /data/adk.rules.db .
-		sqlite3 adk.rules.db ".dump" > ~/sql/rules.sql
-		gnome-terminal -x bash -c "cat ~/sql/rules.sql; exec bash;"
-		rm adk.rules.db
-		;;
-		4)
-		break
-		;;
-		*)
-		echo "Error Re-Type"
-		;;
-		esac
+		clear
+                echo "            View"
+                echo ""
+                for ((i=0; i<$[${#view_menu_array[*]}/2]; i++))
+                do
+                        echo "      $[$i+1]. ${view_menu_array[$i*2]}"
+                done
+                echo ""
+                read -p "Enter Number:" menuNum
+                if [ $[${menuNum}-1] -lt $[${#view_menu_array[*]}/2] ]
+                then
+                        clear
+                        ${view_menu_array[$[$[${menuNum}-1]*2+1]]}
+                else
+                        echo "Enter Error"
+                fi
 	done
+	rm -rf ./sql
 }
 
 view_menu

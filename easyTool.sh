@@ -6,99 +6,49 @@ result=$(echo $devices | grep -w "device")
 deviceNum=${result% *}
 deviceNum=${deviceNum#*attached }
 
+menu_array=("Set LED Pattern"     "./script/led.sh"\
+		"Monitor"	  "./script/monitor.sh"\
+		"View DB File"    "./script/viewDb.sh"\
+		"Configure Gpio"  "./script/gpio.sh"\
+		"WiFi Connection" "./script/wifi.sh"\
+		"Alexa Onboard"   "./script/alexa.sh"\
+		" " 		  "./script/mute.sh"\
+		"BT Modify" 	  "./script/bt.sh"\
+		"Reboot" 	  "adb reboot"\
+		"Quit" 		  "exit 0")
+
 if [[ -n ${result} ]]
 then
+	./script/sys/is_exist.sh &
+	./script/sys/wifi_success.sh &
 	clear
   	while :
 	do
 		muteValue=`adb shell "cat sys/class/gpio/gpio42/value"`
 		if [[ $muteValue == 1* ]]
 		then
-			mute="Mute"
+			menu_array[12]="Mute"
 		else
-			mute="UnMute"
+			menu_array[12]="UnMute"
 		fi
-  		echo "******************************"
-  		echo "*   Version: $THIS_VERSION             *"
-  		echo "*   Device : $deviceNum exist   *"
-  		echo "*                            *"
-  		echo "*********** M E N U **********"
-  		echo "*                            *"
-  		echo "*      1. Set LED Pattern    *"
- 	 	echo "*      2. Monitor            *"
-  		echo "*      3. View DB File       *"
- 	 	echo "*      4. Configure Gpio     *"
- 	 	echo "*      5. Wifi Connect       *"
- 	 	echo "*      6. Alexa Onboard      *"
-  		echo "*      7. $mute               *"
-  		echo "*      8. Bt Addr Modify     *"
-  		echo "*      9. Reboot             *"
-  		echo "*      10. Quit              *"
-  		echo "*                            *"
-  		echo "******************************"
-  		read -p "Enter Number:" menuNum
-  
-  		case $menuNum in
-  		1)
-		clear
-		./script/led.sh		
-		clear
-  		;;
-
-		2)
-		clear
-		./script/monitor.sh
-		clear
-		;;
-
-		3)
-		clear
-		./script/viewDb.sh	
-		clear
-		;;
-
-		4)
-		clear
-		./script/gpio.sh
-		clear
-		;;
-
-		5)
-		clear
-		./script/wifi.sh
-		clear
-		;;
-		
-		6)
-		clear
-		./script/alexa.sh
-		clear
-		;;
-		
-		7)
-		clear
-		./script/mute.sh
-		clear
-		;;
-
-		8)
-		clear
-		./script/bt_addr.sh
-		clear
-		;;
-
-		9)
-		adb reboot
-		exit 0
-		;;
-
-		10)
-		exit 0
-		;;
-
-		*)
-		clear
-		esac
+		echo " "		
+		echo "         Version: $THIS_VERSION"
+		echo "    Device : $deviceNum exist"
+		echo " "		
+		for ((i=0; i<$[${#menu_array[*]}/2]; i++))
+		do
+			echo "      $[$i+1]. ${menu_array[$[${i}*2]]}"
+		done
+		echo " "		
+		read -p "Enter Number:" menuNum
+		if [ $[${menuNum}-1] -lt $[${#menu_array[*]}/2] ]
+		then
+			clear
+			${menu_array[$[$[$menuNum-1]*2+1]]}
+			clear
+		else
+			echo "Enter Error"
+		fi
 	done
 else
 	permission=`adb devices | grep -w "no permissions" | wc -l`

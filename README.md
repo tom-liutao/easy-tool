@@ -41,6 +41,7 @@
 <ul>
     <h4>
     <li>Place 'easyTool' and 'script' in the same folder</li>
+	<li>$ chmod -R 777 script</li>
     </h4>
 </ul>
 </ul>
