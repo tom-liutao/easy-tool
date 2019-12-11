@@ -1,36 +1,27 @@
 #! /bin/bash
-THIS_VERSION="1.0"
+THIS_VERSION="2.0"
 
 devices=`adb devices`
 result=$(echo $devices | grep -w "device")
 deviceNum=${result% *}
 deviceNum=${deviceNum#*attached }
 
-menu_array=("Set LED Pattern"     "./script/led.sh"\
-		"Monitor"	  "./script/monitor.sh"\
-		"View DB File"    "./script/viewDb.sh"\
-		"Configure Gpio"  "./script/gpio.sh"\
+readonly menu_array=("Set LED Pattern"     "./script/led.sh"\
 		"WiFi Connection" "./script/wifi.sh"\
 		"Alexa Onboard"   "./script/alexa.sh"\
-		" " 		  "./script/mute.sh"\
 		"BT Modify" 	  "./script/bt.sh"\
+		"Development" 	  "./script/development.sh"\
 		"Reboot" 	  "adb reboot"\
 		"Quit" 		  "exit 0")
+
+chmod -R +x ./script
 
 if [[ -n ${result} ]]
 then
 	./script/sys/is_exist.sh &
-	./script/sys/wifi_success.sh &
 	clear
   	while :
 	do
-		muteValue=`adb shell "cat sys/class/gpio/gpio42/value"`
-		if [[ $muteValue == 1* ]]
-		then
-			menu_array[12]="Mute"
-		else
-			menu_array[12]="UnMute"
-		fi
 		echo " "		
 		echo "         Version: $THIS_VERSION"
 		echo "    Device : $deviceNum exist"

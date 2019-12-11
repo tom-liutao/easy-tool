@@ -1,9 +1,9 @@
 #! /bin/bash
 
-readonly wifi_menu_array=("Open WiFi"    "wifi_open"\
-			  "Close WiFi"   "wifi_close"\
+readonly wifi_menu_array=(#"Open WiFi"    "wifi_open"\
+			  #"Close WiFi"   "wifi_close"\
 			  "Connect WiFi" "wifi_connect"\
-			  "Disconnect WiFi" "wifi_disconnect"\
+			  #"Disconnect WiFi" "wifi_disconnect"\
 			  "Change Country"  "wifi_change_country"\
 			  "Scan WiFi List" "wifi_scan"\
 			  "Refresh Connection" "wifi_refresh"\
@@ -23,10 +23,12 @@ function wifi_connect () {
 	gnome-terminal -x adb shell "adk-message-send 'connectivity_wifi_onboard{}'"
 	wifiMsgStr="adk-message-send 'connectivity_wifi_connect {ssid:\"$wifissid\"password:\"$wifipassw\" homeap:true}'"
 	gnome-terminal -x adb shell "$wifiMsgStr"
-	pid=`ps -ef | grep "wifi_success.sh" | grep -v "grep" | awk '{print $2}'`
-	if [[ -z $pid ]]
+	echo "Waiting For 3s"
+	sleep 3s
+	pid=`ps -ef | grep -w "is_wifi_stable.sh" | grep -v "grep" | awk '{print $2}'`
+	if [[ -z ${pid} ]]
 	then
-		./script/sys/wifi_success.sh &
+		./script/sys/is_wifi_stable.sh &
 	fi
 }
 
@@ -35,9 +37,12 @@ function wifi_disconnect () {
 }
 
 function wifi_change_country () {
+	nationName=`adb shell adkcfg -f /data/adk.connectivity.wifi.db read connectivity.wifi.onboard_ap_country_code`
+	echo "Current Nation Name: $nationName"
+	echo ""
 	read -p "Enter Nation Name:" nationName
 	gnome-terminal -x adb shell "adk-message-send 'connectivity_wifi_onboard{}'"
-	adkcfg -f /data/adk.connectivity.wifi.db write connectivity.wifi.onboard_ap_country_code $nationName --ignore
+	adb shell adkcfg -f /data/adk.connectivity.wifi.db write connectivity.wifi.onboard_ap_country_code $nationName --ignore
 	adb reboot
 }
 
@@ -55,11 +60,7 @@ function wifi_refresh () {
 }
 
 function wifi_menu () {
-	adb pull /etc/misc/wifi/wpa_supplicant.conf .
-	wifiName=`grep 'ssid=\"' ./wpa_supplicant.conf`
-	wifiNameStr=${wifiName#*\"}
-	wifiNameStr=${wifiNameStr%\"*}
-	rm ./wpa_supplicant.conf
+	wifi_refresh
 	while :
 	do
 		clear
