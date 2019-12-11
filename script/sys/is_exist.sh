@@ -1,7 +1,7 @@
 #! /bin/bash
 
-function _process () {
-	pid=`ps -ef | grep $1 | grep -v grep | awk '{print $2}'`
+function processKill () {
+	pid=`ps -ef | grep -w $1 | grep -v "grep" | awk '{print $2}'`
 	kill -9 $pid
 }
 
@@ -10,15 +10,23 @@ do
 	is_exist=`adb devices | grep -w "device"`
         if [[ -z ${is_exist} ]]
         then
-		_process easyTool.sh ;
-		_process is_exist.sh ;
-		_process wifi_success.sh ;
+		processKill easyTool.sh ;
+		pid=`ps -ef | grep -w "is_wifi_stable.sh" | grep -v "grep" | awk '{print $2}'`
+		if [[ -n ${pid} ]]
+		then
+			processKill is_wifi_stable.sh ;
+		fi
+		processKill is_exist.sh ;
 	else
-		pid=`ps -ef | grep easyTool.sh | grep -v grep | awk '{print $2}'`
+		pid=`ps -ef | grep -w "easyTool.sh" | grep -v "grep" | awk '{print $2}'`
 		if [[ -z ${pid} ]]
 		then
-			_process is_exist.sh ;
-			_process wifi_success.sh ;
+			pid=`ps -ef | grep -w "is_wifi_stable.sh" | grep -v "grep" | awk '{print $2}'`
+			if [[ -n ${pid} ]]
+			then
+				processKill is_wifi_stable.sh ;
+			fi
+			processKill is_exist.sh ;
 		fi
         fi
 	sleep 1s
