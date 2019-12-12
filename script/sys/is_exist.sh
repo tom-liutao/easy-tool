@@ -1,8 +1,22 @@
 #! /bin/bash
 
+readonly process_array=("bt.sh"\
+			"development.sh"\
+			"led.sh"\
+			"wifi.sh"\
+			"is_wifi_stable.sh")
+
 function processKill () {
 	pid=`ps -ef | grep -w $1 | grep -v "grep" | awk '{print $2}'`
 	kill -9 $pid
+}
+
+function processExist () {
+	pid=`ps -ef | grep -w $1 | grep -v "grep" | awk '{print $2}'`
+	if [[ -n ${pid} ]]
+	then
+		processKill $1 ;
+	fi
 }
 
 while : 
@@ -11,21 +25,19 @@ do
         if [[ -z ${is_exist} ]]
         then
 		processKill easyTool.sh ;
-		pid=`ps -ef | grep -w "is_wifi_stable.sh" | grep -v "grep" | awk '{print $2}'`
-		if [[ -n ${pid} ]]
-		then
-			processKill is_wifi_stable.sh ;
-		fi
+		for ((i=0; i<${#process_array[*]}; i++))
+		do
+			processExist ${process_array[$i]} ;
+		done
 		processKill is_exist.sh ;
 	else
 		pid=`ps -ef | grep -w "easyTool.sh" | grep -v "grep" | awk '{print $2}'`
 		if [[ -z ${pid} ]]
 		then
-			pid=`ps -ef | grep -w "is_wifi_stable.sh" | grep -v "grep" | awk '{print $2}'`
-			if [[ -n ${pid} ]]
-			then
-				processKill is_wifi_stable.sh ;
-			fi
+			for ((i=0; i<${#process_array[*]}; i++))
+			do
+				processExist ${process_array[$i]} ;
+			done
 			processKill is_exist.sh ;
 		fi
         fi
